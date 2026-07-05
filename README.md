@@ -1,91 +1,226 @@
-DevOps Practice Project – Dist Directory
+Application Deployment using Docker, Amazon EKS, CodeBuild and CodePipeline
 
-This repository contains the production-ready build files (dist folder) for DevOps practice and deployment exercises.
+The objective of this project was to deploy a React application in a production-ready environment using AWS services. The application was containerized using Docker, stored in Docker Hub, deployed to Amazon EKS, and automated using AWS CodeBuild and CodePipeline.
 
-It is intentionally structured to help learners focus on CI/CD pipelines, hosting, containerization, and infrastructure setup rather than application development.
+The entire deployment process was configured so that whenever changes are pushed to the GitHub repository, AWS CodePipeline automatically triggers CodeBuild, which deploys the updated application to the EKS cluster.
 
-📁 What This Repository Contains
+Technologies Used
+React
+Docker
+Docker Hub
+GitHub
+Amazon EKS
+Kubernetes
+AWS CodeBuild
+AWS CodePipeline
+AWS IAM
+AWS CloudWatch
+kubectl
+AWS CloudShell
 
-dist/ – Compiled and production-ready static files
+Project Workflow
 
-HTML
+1. Clone the Application
 
-CSS
+The React application was cloned from the provided GitHub repository.
 
-JavaScript
+Repository Used:
 
-Assets (images, fonts, etc.)
+https://github.com/Vennilavanguvi/Brain-Tasks-App.git
 
-These files are ready to deploy to:
+2. Dockerize the Application
 
-Web servers (Nginx / Apache)
+A Dockerfile was created to containerize the React application.
 
-Cloud platforms (AWS S3, Azure Blob, GCP Storage)
+The image was built locally using Docker and tested to ensure the application was working correctly before deployment.
 
-Containerized environments (Docker + Nginx)
+Example command:
 
-Kubernetes clusters
+docker build -t brain-app .
 
-CI/CD pipeline demonstrations
+Run the container:
 
-🎯 Purpose of This Repository
+docker run -d -p 3000:3000 brain-app
 
-This repository is designed for:
+3. Push Image to Docker Hub
 
-DevOps beginners
+A Docker Hub repository was created.
 
-CI/CD practice
+The Docker image was tagged and pushed.
 
-Deployment pipeline testing
+4. Create Amazon EKS Cluster
 
-Docker & Kubernetes deployment exercises
+An Amazon EKS cluster named brain-cluster was created.
 
-Web server configuration practice
+The cluster was verified using CloudShell.
 
-Reverse proxy and load balancer setup
+Commands used:
 
-The goal is to simulate real-world deployment scenarios using already built application files.
+kubectl get nodes
 
-❓ Why is there NO package.json?
+kubectl get deployments
 
-You may notice that this repository does not include:
+kubectl get pods
 
-package.json
+kubectl get svc
 
-node_modules
+5. Kubernetes Deployment
 
-Source code (src/)
+Deployment and Service YAML files were created.
 
-Build tools configuration
+deployment.yaml
 
-✅ Reason:
+Responsible for:
 
-This repository only contains the final production build output (dist), not the development source code.
+Creating application deployment
+Pulling Docker image
+Running application pods
+service.yaml
 
-In a typical project:
+Responsible for:
 
-Developers write source code.
+Exposing the application using a LoadBalancer
+Creating an external endpoint for users
 
-The project is built using tools like:
+Deployment command:
 
-Node.js
+kubectl apply -f deployment.yaml
 
-Webpack
+kubectl apply -f service.yaml
+6. Configure AWS CodeBuild
 
-Vite
+A CodeBuild project named Brain-CodeBuild was created.
 
-React (or other frameworks)
+Configuration:
 
-A dist/ folder is generated.
+Source Provider: GitHub
+Build Environment: Amazon Linux
+Buildspec file: buildspec.yaml
 
-Only the production build is deployed to servers.
+The buildspec file performs the following steps:
 
-This repository represents step 4 only.
+Install dependencies
+Update kubeconfig
+Connect to EKS
+Deploy Kubernetes manifests
+Complete deployment
 
-Since this is already the compiled output:
+7. buildspec.yaml
 
-No dependencies are required
+The project uses the following build phases:
 
-No build process is required
+Install
+Installing dependencies
+Pre-Build
 
-No package.json is needed
+Updates kubeconfig to connect CodeBuild with the EKS cluster.
+
+aws eks update-kubeconfig --region ap-south-1 --name brain-cluster
+Build
+
+Deploys Kubernetes resources.
+
+kubectl apply -f deployment.yaml
+
+kubectl apply -f service.yaml
+Post-Build
+
+Displays deployment completion message.
+
+8. Configure AWS CodePipeline
+
+A CodePipeline named Brain-Pipeline was created.
+
+Pipeline Stages:
+
+Source (GitHub)
+
+  |
+
+Build (AWS CodeBuild)
+
+  |
+
+Deploy (Deployment handled through buildspec.yml using kubectl)
+
+Whenever code is pushed to GitHub, the pipeline automatically starts and deploys the latest version to the EKS cluster.
+
+9. IAM Configuration
+
+During the project, IAM permissions were configured for both CodeBuild and CodePipeline.
+
+The required permissions were added to allow:
+
+Access to Amazon EKS
+Describe EKS Cluster
+Update kubeconfig
+Deploy Kubernetes resources
+Access GitHub source
+Execute CodeBuild builds
+
+Proper IAM configuration was required for successful deployment.
+
+10. Monitoring
+
+CloudWatch Logs were used to monitor build execution.
+
+The logs helped verify:
+
+Build progress
+Deployment status
+Errors during execution
+Successful completion of the pipeline
+
+11. Verification
+
+After deployment, the application was verified using Kubernetes commands.
+
+Pods:
+
+kubectl get pods
+
+Deployments:
+
+kubectl get deployments
+
+Services:
+
+kubectl get svc
+
+Nodes:
+
+kubectl get nodes
+
+The application was successfully accessed using the External LoadBalancer URL generated by the Kubernetes Service.
+
+Project Structure
+Mind-track/
+│
+├── Dockerfile
+├── deployment.yaml
+├── service.yaml
+├── buildspec.yml
+├── package.json
+├── package-lock.json
+├── README.md
+└── dist/
+Challenges Faced
+
+Some issues encountered during the implementation included:
+
+IAM permission errors while accessing the EKS cluster.
+CodeBuild was initially unable to execute aws eks update-kubeconfig.
+CodePipeline required additional permissions to trigger CodeBuild.
+Access Entry had to be created for the CodeBuild IAM role in the EKS cluster.
+Deployment was verified multiple times using CloudShell before automation was successful.
+
+These issues were resolved by updating IAM policies, configuring EKS access entries correctly, and verifying deployment using CloudShell.
+
+Outcome
+
+Successfully deployed the React application on Amazon EKS using Docker and Kubernetes.
+
+The deployment process is fully automated through AWS CodePipeline and AWS CodeBuild. Any changes pushed to the GitHub repository automatically trigger the pipeline, which deploys the latest version of the application to the EKS cluster without manual intervention.
+
+GitHub Repository
+https://github.com/sandhyaam13-prog/Mind-track
