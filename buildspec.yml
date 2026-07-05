@@ -1,15 +1,19 @@
 version: 0.2
 
 phases:
+  install:
+    commands:
+      - echo "Installing dependencies"
+
   pre_build:
     commands:
-      - aws eks update-kubeconfig --region ap-south-1 --name brain-cluster
+      - echo "Preparing build"
 
   build:
     commands:
-      - kubectl apply -f deployment.yaml
-      - kubectl apply -f service.yaml
+      - echo "Build started"
+      - docker build -t brain-tasks-app .
 
-artifacts:
-  files:
-    - '**/*'
+  post_build:
+    commands:
+      - echo "Build completed"
