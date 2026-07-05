@@ -7,13 +7,15 @@ phases:
 
   pre_build:
     commands:
-      - echo "Preparing build"
+      - echo "Updating kubeconfig"
+      - aws eks update-kubeconfig --region ap-south-1 --name brain-cluster
 
   build:
     commands:
-      - echo "Build started"
-      - docker build -t brain-tasks-app .
+      - echo "Deploying application"
+      - kubectl apply -f deployment.yaml
+      - kubectl apply -f service.yaml
 
   post_build:
     commands:
-      - echo "Build completed"
+      - echo "Deployment completed"
